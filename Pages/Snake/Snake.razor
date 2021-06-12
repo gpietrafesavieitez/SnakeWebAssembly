@@ -1,0 +1,147 @@
+﻿@page "/snake"
+@implements IDisposable
+@inject IJSRuntime JS
+@using SnakeWebAssembly.Pages.Snake;
+
+<div tabindex="0" class="container-fluid" id="snakeGame" @onkeydown="KeyboardEventHandler">
+
+    <h1>SNAKE</h1>
+    <div class="row text-center">
+
+        @if (MyPlayer.GameOver)
+        {
+            <div class="col-6">
+                <h2>Has perdido</h2>
+                <h3>Has conseguido @MyPlayer.Points puntos</h3>
+            </div>
+        }
+        else
+        {
+            <div class="col-6">
+                <table runat="server" class="game">
+                    @for (int j = 0; j < MyBoard.TabY; j++)
+                    {
+                        <tr id="@j">
+                            @for (int i = 0; i < MyBoard.TabX; i++)
+                            {
+                                // Hay una serpiente
+                                if (MyPlayer.Check(new Pixel(i, j)))
+                                {
+                                    <td id="@i" class="snake"></td>
+                                }
+
+                                // La manzana y la cabeza de la serpiente chocan
+                                else if (MyPlayer.Head.PosX == MyApple.PosX && MyPlayer.Head.PosY == MyApple.PosY)
+                                {
+                                    CreateApple();
+                                    MyPlayer.Grow();
+                                    MyPlayer.Points += 50;
+                                }
+
+                                // Hay una manzana
+                                else if (MyApple.PosX == i && MyApple.PosY == j)
+                                {
+                                    <td id="@i" class="apple"></td>
+                                }
+
+                                // La cabeza de la serpiente choca con el tablero
+                                else if (
+                                        MyPlayer.Head.PosX < 0
+                                    || MyPlayer.Head.PosX >= MyBoard.TabX
+                                    || MyPlayer.Head.PosY < 0
+                                    || MyPlayer.Head.PosY >= MyBoard.TabY
+                                    )
+                                {
+                                    MyPlayer.GameOver = true;
+                                    TimerStop();
+                                }
+
+                                // La cabeza de la serpiente choca con una parte de su cuerpo
+                                else if (MyPlayer.IsCrashing)
+                                {
+                                    MyPlayer.GameOver = true;
+                                    TimerStop();
+                                }
+
+                                // Hay otra cosa
+                                else
+                                {
+                                    <td id="@i" class="board"></td>
+                                }
+                            }
+                        </tr>
+                    }
+                </table>
+            </div>
+        }
+
+
+        <div class="col-6">
+            <h4>Dificultad</h4>
+            <div class="form-check text-left">
+                <input @onchange="@(()=>updateDifficulty(1000))" class="form-check-input" type="radio" name="difficulty" id="easy" checked>
+                <label class="form-check-label" for="easy">
+                    Fácil
+                </label>
+                <br />
+                <input @onchange="@(()=>updateDifficulty(300))" class="form-check-input" type="radio" name="difficulty" id="normal">
+                <label class="form-check-label" for="normal">
+                    Normal
+                </label>
+                <br />
+                <input @onchange="@(()=>updateDifficulty(100))" class="form-check-input" type="radio" name="difficulty" id="hard">
+                <label class="form-check-label" for="hard">
+                    Dificil
+                </label>
+                <br />
+                <input @onchange="@(()=>updateDifficulty(50))" class="form-check-input" type="radio" name="difficulty" id="extreme">
+                <label class="form-check-label" for="extreme">
+                    Extremo
+                </label>
+            </div>
+            <hr />
+            <div class="text-center">
+                <button class="btn btn-primary btn-block" @onclick="TimerStart">Jugar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private void KeyboardEventHandler(KeyboardEventArgs args)
+    {
+        if (args.Key == "ArrowLeft" && Dir != Direction.RIGHT)
+        {
+            Dir = Direction.LEFT;
+        }
+        else if (args.Key == "ArrowUp" && Dir != Direction.DOWN)
+        {
+            Dir = Direction.UP;
+        }
+        else if (args.Key == "ArrowRight" && Dir != Direction.LEFT)
+        {
+            Dir = Direction.RIGHT;
+        }
+        else if (args.Key == "ArrowDown" && Dir != Direction.UP)
+        {
+            Dir = Direction.DOWN;
+        }
+    }
+
+
+    private async Task focusOnControls()
+    {
+        await JS.InvokeVoidAsync("setFocusOnElement");
+    }
+
+    private async Task refreshPage()
+    {
+        await JS.InvokeVoidAsync("refresh");
+    }
+
+    private async Task FocusOnControls()
+    {
+        await JS.InvokeVoidAsync("setFocusOnInput");
+    }
+
+}

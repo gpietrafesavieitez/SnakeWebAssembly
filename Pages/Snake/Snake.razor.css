@@ -1,0 +1,26 @@
+﻿.snake {
+    background-color: forestgreen;
+    height: 1.5rem;
+    width: 1.5rem;
+}
+
+.board {
+    background-color: lightgrey;
+    height: 1.5rem;
+    width: 1.5rem;
+}
+
+.apple {
+    background-color: orangered;
+    height: 1.5rem;
+    width: 1.5rem;
+}
+
+.game {
+    width: auto;
+    background-color: lightgray;
+}
+
+.formControl {
+    margin-right: 10px;
+}
